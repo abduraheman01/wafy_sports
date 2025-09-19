@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "791706601942",
+    "project_id": "flutterapplication2-4642c",
+    "storage_bucket": "flutterapplication2-4642c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:791706601942:android:6c056da99ce0e19c82fc77",
+        "android_client_info": {
+          "package_name": "com.example.sports_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGNmzJVekyx_SBdndSYZZOKzEEAfx31TI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
