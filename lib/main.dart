@@ -32,8 +32,7 @@ class MyApp extends StatelessWidget {
           titleTextStyle: TextStyle(
               color: Colors.black87, fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        // The problematic cardTheme property has been removed.
-        // Styling is now handled by CustomCard widget.
+        
       ),
       home: const HomeScreen(),
       debugShowCheckedModeBanner: false,

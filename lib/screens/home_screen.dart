@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
         leadingWidth: 40,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/sports_logo.png'),
+          child: Image.asset('assets/images/logo.png'),
         ),
         title: const Text('Wafy Sports',
             style: TextStyle(fontWeight: FontWeight.bold)),

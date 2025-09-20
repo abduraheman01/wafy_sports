@@ -69,7 +69,7 @@ class Match {
       awayScore: int.tryParse(data['awayScore'].toString()) ?? 0,
       penaltyHomeScore: int.tryParse(data['penaltyHomeScore']?.toString() ?? ''),
       penaltyAwayScore: int.tryParse(data['penaltyAwayScore']?.toString() ?? ''),
-      time: data['time']?.toString() ?? '',
+      time: data['time']?.toString() ?? '0\'',
       date: (data['date'] as Timestamp? ?? Timestamp.now()).toDate(),
       events: eventsList,
     );
