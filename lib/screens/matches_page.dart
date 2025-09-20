@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sports_app/models/match_model.dart';
 import 'package:sports_app/widgets/match_card.dart';
+import 'package:sports_app/screens/full_match_list_page.dart';
 
 class MatchesPage extends StatefulWidget {
   const MatchesPage({super.key});
@@ -9,8 +10,7 @@ class MatchesPage extends StatefulWidget {
   State<MatchesPage> createState() => _MatchesPageState();
 }
 
-class _MatchesPageState extends State<MatchesPage>
-    with TickerProviderStateMixin {
+class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin {
   late TabController _tabController;
   final List<String> _categories = ['6s', '5s', '7s'];
 
@@ -32,8 +32,7 @@ class _MatchesPageState extends State<MatchesPage>
       children: [
         TabBar(
           controller: _tabController,
-          tabs:
-              _categories.map((String category) => Tab(text: category)).toList(),
+          tabs: _categories.map((String category) => Tab(text: category)).toList(),
           indicatorColor: Colors.white,
           indicatorWeight: 3.0,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -50,7 +49,6 @@ class _MatchesPageState extends State<MatchesPage>
     );
   }
 }
-// In lib/screens/matches_page.dart
 
 class CategoryMatchesList extends StatefulWidget {
   final String category;
@@ -68,7 +66,6 @@ class _CategoryMatchesListState extends State<CategoryMatchesList> with Automati
   Widget build(BuildContext context) {
     super.build(context);
     return StreamBuilder<QuerySnapshot>(
-      // FIXED: Removed the .orderBy('date') part of the query
       stream: FirebaseFirestore.instance
           .collection('matches')
           .where('category', isEqualTo: widget.category)
@@ -78,23 +75,66 @@ class _CategoryMatchesListState extends State<CategoryMatchesList> with Automati
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
+          return Center(child: Text("Error: ${snapshot.error}\n\nThis usually means you need to create a Firestore Index. Check your debug console for a link to create it."));
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(child: Text("No matches found for ${widget.category}."));
+          return Center(child: Text("No matches for ${widget.category}."));
         }
 
-        final allMatches =
-            snapshot.data!.docs.map((doc) => Match.fromFirestore(doc)).toList();
+        final allMatches = snapshot.data!.docs.map((doc) => Match.fromFirestore(doc)).toList();
+        
+        // Separate matches into lists based on status
+        final live = allMatches.where((m) => m.status == 'Live').toList();
+        final finished = allMatches.where((m) => m.status == 'Finished').toList();
+        final upcoming = allMatches.where((m) => m.status == 'Upcoming').toList();
 
-        return ListView.builder(
+        return ListView(
           padding: const EdgeInsets.all(16.0),
-          itemCount: allMatches.length,
-          itemBuilder: (context, index) {
-            return MatchCard(match: allMatches[index]);
-          },
+          children: [
+            if (live.isNotEmpty) ...[
+              _buildSectionHeader(context, "Live Matches"),
+              ...live.map((match) => MatchCard(match: match)),
+              const SizedBox(height: 24),
+            ],
+            
+            _buildSectionHeader(context, "Finished Matches", () {
+              if (finished.isEmpty) return;
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => FullMatchListPage(title: "Finished Matches", matches: finished)
+              ));
+            }),
+            if(finished.isEmpty) const Center(child: Text("No finished matches.")),
+            ...finished.take(2).map((match) => MatchCard(match: match)),
+            const SizedBox(height: 24),
+
+            _buildSectionHeader(context, "Upcoming Matches", () {
+               if (upcoming.isEmpty) return;
+               Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => FullMatchListPage(title: "Upcoming Matches", matches: upcoming)
+              ));
+            }),
+            if(upcoming.isEmpty) const Center(child: Text("No upcoming matches.")),
+            ...upcoming.take(2).map((match) => MatchCard(match: match)),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, [VoidCallback? onSeeMore]) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          if(onSeeMore != null)
+            TextButton(
+              onPressed: onSeeMore,
+              child: const Text("See More", style: TextStyle(color: Colors.white70)),
+            )
+        ],
+      ),
     );
   }
 }

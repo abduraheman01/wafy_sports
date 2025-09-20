@@ -15,7 +15,7 @@ class LiveMatchControlPanel extends StatelessWidget {
 
   void _updateMinute(String currentTime, int delta) {
     int currentMinute = int.tryParse(currentTime.replaceAll("'", "")) ?? 0;
-    int nextMinute = (currentMinute + delta).clamp(0, 120); // Clamp between 0 and 120
+    int nextMinute = (currentMinute + delta).clamp(0, 120);
     _matchRef.update({'time': "$nextMinute'"});
   }
 

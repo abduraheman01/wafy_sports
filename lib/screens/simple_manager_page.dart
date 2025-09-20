@@ -24,6 +24,16 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
   final _playerNameController = TextEditingController();
   final _playerTeamNameController = TextEditingController();
   final _playerTeamLogoController = TextEditingController();
+  String _playerSelectedCategory = '6s';
+
+  // Controllers for Event Form
+  final _eventPlayerController = TextEditingController();
+  final _eventMinuteController = TextEditingController();
+
+  // Controllers for Update Form
+  final _updateTimeController = TextEditingController();
+  final _penaltyHomeController = TextEditingController();
+  final _penaltyAwayController = TextEditingController();
 
   void _selectTime() async {
     final TimeOfDay? picked = await showTimePicker(
@@ -89,6 +99,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
       'name': _playerNameController.text,
       'teamName': _playerTeamNameController.text,
       'teamLogo': _playerTeamLogoController.text,
+      'category': _playerSelectedCategory,
       'goals': 0,
       'saves': 0,
     });
@@ -98,6 +109,178 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
     _playerTeamLogoController.clear();
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Player added successfully!")));
+  }
+
+  void _showAddEventDialog(String matchId) {
+    String eventType = 'goal';
+    String team = 'home';
+    _eventPlayerController.clear();
+    _eventMinuteController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Match Event'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                  controller: _eventPlayerController,
+                  decoration: const InputDecoration(labelText: 'Player Name')),
+              TextField(
+                  controller: _eventMinuteController,
+                  decoration: const InputDecoration(labelText: 'Minute'),
+                  keyboardType: TextInputType.number),
+              StatefulBuilder(builder: (context, setDialogState) {
+                return Column(
+                  children: [
+                    DropdownButton<String>(
+                      value: eventType,
+                      onChanged: (String? newValue) {
+                        setDialogState(() => eventType = newValue!);
+                      },
+                      items: <String>['goal', 'yellow_card', 'red_card']
+                          .map((v) => DropdownMenuItem(
+                              value: v,
+                              child: Text(v.replaceAll('_', ' ').toUpperCase())))
+                          .toList(),
+                    ),
+                    DropdownButton<String>(
+                      value: team,
+                      onChanged: (String? newValue) {
+                        setDialogState(() => team = newValue!);
+                      },
+                      items: <String>['home', 'away']
+                          .map((v) =>
+                              DropdownMenuItem(value: v, child: Text(v.toUpperCase())))
+                          .toList(),
+                    ),
+                  ],
+                );
+              })
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel')),
+            ElevatedButton(
+                onPressed: () {
+                  final newEvent = {
+                    'type': eventType,
+                    'player': _eventPlayerController.text,
+                    'minute': int.tryParse(_eventMinuteController.text) ?? 0,
+                    'team': team,
+                  };
+                  FirebaseFirestore.instance
+                      .collection('matches')
+                      .doc(matchId)
+                      .update({
+                    'events': FieldValue.arrayUnion([newEvent])
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Add Event')),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showUpdateMatchDialog(Match match) {
+    _updateTimeController.text = match.time;
+    _penaltyHomeController.text = match.penaltyHomeScore?.toString() ?? '';
+    _penaltyAwayController.text = match.penaltyAwayScore?.toString() ?? '';
+    String currentStatus = match.status;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title:
+              Text("Update: ${match.homeTeamName} vs ${match.awayTeamName}"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StatefulBuilder(builder: (context, setDialogState) {
+                  return DropdownButtonFormField<String>(
+                    value: currentStatus,
+                    items: ['Upcoming', 'Live', 'Finished']
+                        .map((s) =>
+                            DropdownMenuItem(value: s, child: Text(s)))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        FirebaseFirestore.instance
+                            .collection('matches')
+                            .doc(match.id)
+                            .update({'status': val});
+                        setDialogState(() => currentStatus = val);
+                      }
+                    },
+                    decoration: const InputDecoration(labelText: 'Status'),
+                  );
+                }),
+                TextField(
+                  controller: _updateTimeController,
+                  decoration: const InputDecoration(
+                      labelText: 'Time (e.g., HT, 85\', FT)'),
+                  onSubmitted: (value) => FirebaseFirestore.instance
+                      .collection('matches')
+                      .doc(match.id)
+                      .update({'time': value}),
+                ),
+                const SizedBox(height: 20),
+                const Text("Penalty Shootout (if any)"),
+                Row(
+                  children: [
+                    Expanded(
+                        child: TextField(
+                            controller: _penaltyHomeController,
+                            decoration:
+                                const InputDecoration(labelText: 'Home Pen.'),
+                            keyboardType: TextInputType.number)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                        child: TextField(
+                            controller: _penaltyAwayController,
+                            decoration:
+                                const InputDecoration(labelText: 'Away Pen.'),
+                            keyboardType: TextInputType.number)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  child: const Text("Update Penalty Score"),
+                  onPressed: () {
+                    final int? homePen =
+                        int.tryParse(_penaltyHomeController.text);
+                    final int? awayPen =
+                        int.tryParse(_penaltyAwayController.text);
+                    FirebaseFirestore.instance
+                        .collection('matches')
+                        .doc(match.id)
+                        .update({
+                      'penaltyHomeScore': homePen,
+                      'penaltyAwayScore': awayPen
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Penalties Updated!")));
+                  },
+                )
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close')),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -115,89 +298,57 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _selectedCategory,
-                      items: ['6s', '5s', '7s']
-                          .map((c) =>
-                              DropdownMenuItem(value: c, child: Text(c)))
-                          .toList(),
-                      onChanged: (val) =>
-                          setState(() => _selectedCategory = val!),
+                      items: ['6s', '5s', '7s'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      onChanged: (val) => setState(() => _selectedCategory = val!),
                       decoration: const InputDecoration(labelText: 'Category'),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(
+                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _selectedStage,
-                      items: [
-                        'Group Stage',
-                        'Knockout',
-                        'Quarter Final',
-                        'Semi Final',
-                        'Final'
-                      ]
-                          .map((s) =>
-                              DropdownMenuItem(value: s, child: Text(s)))
-                          .toList(),
+                      items: ['Group Stage', 'Knockout', 'Quarter Final', 'Semi Final', 'Final'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                       onChanged: (val) => setState(() => _selectedStage = val!),
-                      decoration:
-                          const InputDecoration(labelText: 'Match Stage'),
+                      decoration: const InputDecoration(labelText: 'Match Stage'),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              TextField(
-                  controller: _homeTeamController,
-                  decoration:
-                      const InputDecoration(labelText: 'Home Team Name')),
-              TextField(
-                  controller: _awayTeamController,
-                  decoration:
-                      const InputDecoration(labelText: 'Away Team Name')),
-              TextField(
-                  controller: _homeLogoController,
-                  decoration: const InputDecoration(
-                      labelText: 'Home Logo File (e.g., team.png)')),
-              TextField(
-                  controller: _awayLogoController,
-                  decoration: const InputDecoration(
-                      labelText: 'Away Logo File (e.g., team2.png)')),
+              TextField(controller: _homeTeamController, decoration: const InputDecoration(labelText: 'Home Team Name')),
+              TextField(controller: _awayTeamController, decoration: const InputDecoration(labelText: 'Away Team Name')),
+              TextField(controller: _homeLogoController, decoration: const InputDecoration(labelText: 'Home Logo File (e.g., team.png)')),
+              TextField(controller: _awayLogoController, decoration: const InputDecoration(labelText: 'Away Logo File (e.g., team2.png)')),
               const SizedBox(height: 12),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(
-                    'Start Time: ${_selectedTime?.format(context) ?? 'Not Set'}'),
+                title: Text('Start Time: ${_selectedTime?.format(context) ?? 'Not Set'}'),
                 trailing: const Icon(Icons.timer),
                 onTap: _selectTime,
               ),
               const SizedBox(height: 12),
-              ElevatedButton(
-                  onPressed: _saveMatch, child: const Text('Schedule Match')),
+              ElevatedButton(onPressed: _saveMatch, child: const Text('Schedule Match')),
             ],
           ),
           const SizedBox(height: 24),
           _buildCard(
             title: 'Add New Player',
             children: [
-              TextField(
-                  controller: _playerNameController,
-                  decoration: const InputDecoration(labelText: 'Player Name')),
-              TextField(
-                  controller: _playerTeamNameController,
-                  decoration:
-                      const InputDecoration(labelText: 'Player\'s Team Name')),
-              TextField(
-                  controller: _playerTeamLogoController,
-                  decoration: const InputDecoration(
-                      labelText: 'Team Logo File (e.g., team.png)')),
+              DropdownButtonFormField<String>(
+                value: _playerSelectedCategory,
+                items: ['6s', '5s', '7s'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                onChanged: (val) => setState(() => _playerSelectedCategory = val!),
+                decoration: const InputDecoration(labelText: 'Category'),
+              ),
+              TextField(controller: _playerNameController, decoration: const InputDecoration(labelText: 'Player Name')),
+              TextField(controller: _playerTeamNameController, decoration: const InputDecoration(labelText: 'Player\'s Team Name')),
+              TextField(controller: _playerTeamLogoController, decoration: const InputDecoration(labelText: 'Team Logo File (e.g., team.png)')),
               const SizedBox(height: 12),
-              ElevatedButton(
-                  onPressed: _savePlayer, child: const Text('Save Player')),
+              ElevatedButton(onPressed: _savePlayer, child: const Text('Save Player')),
             ],
           ),
           const Divider(height: 40),
-          Text("Manage Existing Data",
-              style: Theme.of(context).textTheme.headlineSmall),
+          Text("Manage Existing Data", style: Theme.of(context).textTheme.headlineSmall),
           _buildMatchesList(),
           _buildPlayersList(),
         ],
@@ -224,51 +375,61 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
 
   Widget _buildMatchesList() {
     return StreamBuilder<QuerySnapshot>(
-      stream:
-          FirebaseFirestore.instance.collection('matches').orderBy('date').snapshots(),
+      stream: FirebaseFirestore.instance.collection('matches').orderBy('date').snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
-          return const Center(child: CircularProgressIndicator());
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            final doc = snapshot.data!.docs[index];
-            final match = Match.fromFirestore(doc);
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: ListTile(
-                title:
-                    Text('${match.homeTeamName} vs ${match.awayTeamName}'),
-                subtitle: Text(
-                    '${match.status} | Score: ${match.homeScore} - ${match.awayScore}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            match.status == 'Live' ? Colors.orange : Colors.green,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                      ),
-                      child: Text(match.status == 'Live' ? 'Manage' : 'Go Live'),
-                      onPressed: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) =>
-                              LiveMatchControlPanel(matchId: doc.id),
-                        ));
-                      },
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+             Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text("Matches", style: Theme.of(context).textTheme.titleLarge),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final doc = snapshot.data!.docs[index];
+                final match = Match.fromFirestore(doc);
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: ListTile(
+                    title: Text('${match.homeTeamName} vs ${match.awayTeamName}'),
+                    subtitle: Text('${match.status} | Score: ${match.homeScore} - ${match.awayScore}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: match.status == 'Live' ? Colors.orange : Colors.green,
+                          ),
+                          child: Text(match.status == 'Live' ? 'Manage' : 'Go Live'),
+                          onPressed: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => LiveMatchControlPanel(matchId: doc.id),
+                            ));
+                          },
+                        ),
+                         IconButton(
+                          tooltip: 'Update Details',
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _showUpdateMatchDialog(match)),
+                        IconButton(
+                          tooltip: 'Add Event',
+                          icon: const Icon(Icons.add_comment),
+                          onPressed: () => _showAddEventDialog(doc.id)),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.redAccent),
+                          onPressed: () => doc.reference.delete(),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.redAccent),
-                      onPressed: () => doc.reference.delete(),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+                  ),
+                );
+              },
+            ),
+          ],
         );
       },
     );
@@ -279,41 +440,38 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
       stream: FirebaseFirestore.instance.collection('players').snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const SizedBox.shrink();
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            final doc = snapshot.data!.docs[index];
-            final player = Player.fromFirestore(doc);
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: ListTile(
-                title: Text(player.name),
-                subtitle:
-                    Text('Goals: ${player.goals}, Saves: ${player.saves}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                        tooltip: 'Add Goal',
-                        icon: const Icon(Icons.add_circle, color: Colors.green),
-                        onPressed: () => doc.reference
-                            .update({'goals': FieldValue.increment(1)})),
-                    IconButton(
-                        tooltip: 'Add Save',
-                        icon: const Icon(Icons.shield, color: Colors.blue),
-                        onPressed: () => doc.reference
-                            .update({'saves': FieldValue.increment(1)})),
-                    IconButton(
-                        tooltip: 'Delete Player',
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => doc.reference.delete()),
-                  ],
-                ),
-              ),
-            );
-          },
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text("Players", style: Theme.of(context).textTheme.titleLarge),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: snapshot.data!.docs.length,
+              itemBuilder: (context, index) {
+                final doc = snapshot.data!.docs[index];
+                final player = Player.fromFirestore(doc);
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: ListTile(
+                    title: Text(player.name),
+                    subtitle: Text('Goals: ${player.goals}, Saves: ${player.saves}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(tooltip: 'Add Goal', icon: const Icon(Icons.add_circle, color: Colors.green), onPressed: () => doc.reference.update({'goals': FieldValue.increment(1)})),
+                        IconButton(tooltip: 'Add Save', icon: const Icon(Icons.shield, color: Colors.blue), onPressed: () => doc.reference.update({'saves': FieldValue.increment(1)})),
+                        IconButton(tooltip: 'Delete Player', icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => doc.reference.delete()),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         );
       },
     );

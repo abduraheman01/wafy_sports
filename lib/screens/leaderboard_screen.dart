@@ -2,13 +2,58 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sports_app/models/player_model.dart';
 
-class LeaderboardScreen extends StatelessWidget {
+class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
+  @override
+  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
+}
+
+class _LeaderboardScreenState extends State<LeaderboardScreen> with TickerProviderStateMixin {
+  late TabController _tabController;
+  final List<String> _categories = ['6s', '5s', '7s'];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _categories.length, vsync: this);
+  }
+
+   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: ListView(
+    return Column(
+      children: [
+         TabBar(
+          controller: _tabController,
+          tabs: _categories.map((String category) => Tab(text: category)).toList(),
+          indicatorColor: Colors.white,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: _categories.map((String category) {
+              return CategoryLeaderboard(category: category);
+            }).toList()
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class CategoryLeaderboard extends StatelessWidget {
+  final String category;
+  const CategoryLeaderboard({super.key, required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         children: [
           _buildLeaderboardSection(
@@ -16,6 +61,7 @@ class LeaderboardScreen extends StatelessWidget {
             title: 'Top Scorers',
             stream: FirebaseFirestore.instance
                 .collection('players')
+                .where('category', isEqualTo: category)
                 .orderBy('goals', descending: true)
                 .limit(3)
                 .snapshots(),
@@ -27,17 +73,17 @@ class LeaderboardScreen extends StatelessWidget {
             title: 'Top Keepers (Saves)',
             stream: FirebaseFirestore.instance
                 .collection('players')
+                .where('category', isEqualTo: category)
                 .orderBy('saves', descending: true)
                 .limit(3)
                 .snapshots(),
             statField: 'saves',
           ),
         ],
-      ),
-    );
+      );
   }
 
-  Widget _buildLeaderboardSection({
+   Widget _buildLeaderboardSection({
     required BuildContext context,
     required String title,
     required Stream<QuerySnapshot> stream,
@@ -57,6 +103,12 @@ class LeaderboardScreen extends StatelessWidget {
         StreamBuilder<QuerySnapshot>(
           stream: stream,
           builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text("Error: ${snapshot.error}\n\nThis usually means you need to create a Firestore Index. Check your debug console for a link to create it."),
+              ));
+            }
             if (!snapshot.hasData)
               return const Center(child: CircularProgressIndicator());
             if (snapshot.data!.docs.isEmpty)
