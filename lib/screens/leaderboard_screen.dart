@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sports_app/models/player_model.dart';
 import 'package:sports_app/screens/simple_manager_page.dart';
+import 'package:sports_app/config/app_config.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -93,8 +94,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     final double headerHeight = screenHeight / 5;
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      extendBodyBehindAppBar: true,
+      backgroundColor: AppConfig.backgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [

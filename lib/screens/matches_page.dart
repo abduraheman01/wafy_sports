@@ -5,6 +5,9 @@ import 'package:sports_app/screens/full_match_list_page.dart';
 import 'package:sports_app/screens/simple_manager_page.dart';
 import 'package:sports_app/widgets/live_match_card.dart';
 import 'package:sports_app/widgets/match_card.dart';
+import 'package:sports_app/widgets/error_widgets.dart';
+import 'package:sports_app/widgets/safe_image.dart';
+import 'package:sports_app/config/app_config.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class MatchesPage extends StatefulWidget {
@@ -51,7 +54,7 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
             ),
             ElevatedButton(
               onPressed: () {
-                if (_passwordController.text == 'abdu15211') {
+                if (_passwordController.text == AppConfig.adminPassword) {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
@@ -74,17 +77,109 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
   }
 
   Widget _buildHeader(double headerHeight) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = AppConfig.isWeb(screenWidth);
+
     return GestureDetector(
       onDoubleTap: _showPasswordDialog,
       child: Container(
-        height: headerHeight,
+        height: isWeb ? headerHeight * 0.8 : headerHeight,
         width: double.infinity,
-        
+        decoration: const BoxDecoration(
+          color: Colors.white,
+        ),
         alignment: Alignment.center,
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
-        child: Image.asset(
-          'assets/images/LogoWide.png',
-          fit: BoxFit.contain,
+        padding: EdgeInsets.only(
+          left: isWeb ? 24.0 : 16.0,
+          right: isWeb ? 24.0 : 16.0,
+          bottom: 12.0,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Clean logo design (no container styling)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: SafeImage(
+                imagePath: 'assets/images/LogoWide.png',
+                height: isWeb ? 100 : 80,
+                fit: BoxFit.contain,
+                fallbackWidget: Container(
+                  height: isWeb ? 100 : 80,
+                  width: isWeb ? 200 : 160,
+                  decoration: BoxDecoration(
+                    color: AppConfig.backgroundColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Simple logo icon
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppConfig.primaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.sports_soccer,
+                          size: isWeb ? 24 : 20,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Clean text section
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Main title - bold black text
+                          Text(
+                            'WAFY SPORTS',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: isWeb ? 20 : 16,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          // Simple subtitle
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppConfig.secondaryColor,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'MEET',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isWeb ? 12 : 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (isWeb) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Live Sports Updates & Match Tracking',
+                style: TextStyle(
+                  color: AppConfig.textSecondary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -93,34 +188,38 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
-    final double headerHeight = screenHeight / 5;
+    final double headerHeight = screenHeight / 4.5; // Optimized for better space usage
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = AppConfig.isWeb(screenWidth);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      extendBodyBehindAppBar: true,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(headerHeight),
-            StreamBuilder<QuerySnapshot>(
+      backgroundColor: AppConfig.backgroundColor,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(headerHeight),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('matches')
-                  .orderBy('date', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: Padding(
-                    padding: EdgeInsets.all(32.0),
-                    child: CircularProgressIndicator(),
-                  ));
+                  return const LoadingWidget(message: 'Loading matches...');
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text("Error: ${snapshot.error}"));
+                  return FirebaseErrorWidget(
+                    error: snapshot.error.toString(),
+                    onRetry: () => setState(() {}),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text("No matches found."));
+                  return const EmptyDataWidget(
+                    title: 'No Matches Yet',
+                    subtitle: 'Check back later for upcoming matches and live scores.',
+                    icon: Icons.sports_soccer,
+                  );
                 }
 
                 final allMatches = snapshot.data!.docs
@@ -128,6 +227,16 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
                     .toList();
 
                 final liveMatches = allMatches.where((m) => m.status == 'Live').toList();
+                // Sort live matches by time (earliest started first)
+                liveMatches.sort((a, b) {
+                  int dateComparison = a.date.compareTo(b.date);
+                  if (dateComparison == 0) {
+                    // If same date, sort by time
+                    return a.time.compareTo(b.time);
+                  }
+                  return dateComparison;
+                });
+
                 final otherMatches = allMatches.where((m) => m.status != 'Live').toList();
 
                 return Column(
@@ -158,28 +267,66 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
                         ),
                       ),
                     ],
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 8.0),
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                        vertical: 16.0,
+                        horizontal: isWeb ? 32.0 : 16.0,
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
                       child: TabBar(
                         controller: _tabController,
                         tabs: _categories
-                            .map((String category) => Tab(text: category))
+                            .map((String category) => Tab(
+                                  text: category,
+                                  height: 40,
+                                ))
                             .toList(),
                         labelColor: Colors.white,
-                        unselectedLabelColor: Colors.black54,
+                        unselectedLabelColor: const Color(0xFF6B7280),
                         labelStyle: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14),
+                            fontWeight: FontWeight.w600, fontSize: 14),
+                        unselectedLabelStyle: const TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
                         indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: newBlue,
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppConfig.primaryColor,
+                              AppConfig.secondaryColor,
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppConfig.primaryColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                            BoxShadow(
+                              color: AppConfig.accentColor.withOpacity(0.1),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ],
                         ),
                         indicatorSize: TabBarIndicatorSize.tab,
                         dividerColor: Colors.transparent,
+                        overlayColor: MaterialStateProperty.all(Colors.transparent),
                       ),
                     ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height,
+                    Expanded(
                       child: TabBarView(
                         controller: _tabController,
                         children: _categories.map((category) {
@@ -194,8 +341,8 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -214,15 +361,34 @@ class CategorizedMatchView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categoryMatches = matches.where((m) => m.category == category).toList();
+
+    // Sort finished matches by most recent first
     final finishedMatches = categoryMatches.where((m) => m.status == 'Finished').toList();
+    finishedMatches.sort((a, b) {
+      int dateComparison = b.date.compareTo(a.date);
+      if (dateComparison == 0) {
+        // If same date, sort by time
+        return b.time.compareTo(a.time);
+      }
+      return dateComparison;
+    });
+
+    // Sort upcoming matches chronologically (earliest first)
     final upcomingMatches = categoryMatches.where((m) => m.status == 'Upcoming').toList();
+    upcomingMatches.sort((a, b) {
+      int dateComparison = a.date.compareTo(b.date);
+      if (dateComparison == 0) {
+        // If same date, sort by time
+        return a.time.compareTo(b.time);
+      }
+      return dateComparison;
+    });
 
     if (categoryMatches.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Text("No matches for $category."),
-        ),
+      return EmptyDataWidget(
+        title: 'No $category Matches',
+        subtitle: 'No matches available in this category yet.',
+        icon: Icons.sports_soccer,
       );
     }
     
@@ -261,8 +427,31 @@ class CategorizedMatchView extends StatelessWidget {
             Center(
               child: TextButton(
                 onPressed: () {
+                  // Sort matches properly based on type
+                  List<Match> sortedMatches = List.from(matches);
+
+                  if (title.contains('Upcoming')) {
+                    // Sort upcoming matches chronologically (earliest first)
+                    sortedMatches.sort((a, b) {
+                      int dateComparison = a.date.compareTo(b.date);
+                      if (dateComparison == 0) {
+                        return a.time.compareTo(b.time);
+                      }
+                      return dateComparison;
+                    });
+                  } else if (title.contains('Finished')) {
+                    // Sort finished matches by most recent first
+                    sortedMatches.sort((a, b) {
+                      int dateComparison = b.date.compareTo(a.date);
+                      if (dateComparison == 0) {
+                        return b.time.compareTo(a.time);
+                      }
+                      return dateComparison;
+                    });
+                  }
+
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => FullMatchListPage(title: title, matches: matches),
+                    builder: (context) => FullMatchListPage(title: title, matches: sortedMatches),
                   ));
                 },
                 child: const Text('See more'),

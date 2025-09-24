@@ -1,13 +1,24 @@
 {
-    "name": "sportify",
-    "short_name": "sportify",
-    "start_url": ".",
+    "name": "Wafy Sports - Your Sports Hub",
+    "short_name": "Wafy Sports",
+    "start_url": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#ffffff",
-    "description": "Wafy sports official Application.",
-    "orientation": "portrait-primary",
+    "background_color": "#F8F9FA",
+    "theme_color": "#DF1A19",
+    "description": "Wafy Sports - Your ultimate sports hub. Track live matches, view leaderboards, and stay updated with all the latest sports action.",
+    "orientation": "any",
     "prefer_related_applications": false,
+    "lang": "en-US",
+    "categories": ["sports", "entertainment", "news"],
+    "screenshots": [
+        {
+            "src": "icons/Icon-512.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "form_factor": "wide",
+            "label": "Wafy Sports Dashboard"
+        }
+    ],
     "icons": [
         {
             "src": "icons/Icon-192.png",

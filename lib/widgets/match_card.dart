@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sports_app/models/match_model.dart';
 import 'package:sports_app/screens/match_detail_screen.dart';
+import 'package:sports_app/config/app_config.dart';
+import 'package:sports_app/widgets/safe_image.dart';
 import 'package:intl/intl.dart';
 
 class MatchCard extends StatelessWidget {
@@ -9,24 +11,80 @@ class MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = AppConfig.isWeb(screenWidth);
+    final isFinished = match.status == 'Finished';
+
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => MatchDetailScreen(match: match))),
-      child: Card(
-        elevation: 1,
-        shadowColor: Colors.black.withOpacity(0.1),
-        margin: const EdgeInsets.only(bottom: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
+      child: Container(
+        margin: EdgeInsets.only(
+          bottom: 16,
+          left: isWeb ? 32 : 16,
+          right: isWeb ? 32 : 16,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: isFinished
+                ? Colors.grey.withOpacity(0.2)
+                : AppConfig.primaryColor.withOpacity(0.1),
+            width: 1,
+          ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: EdgeInsets.all(isWeb ? 24 : 20),
+          child: Column(
             children: [
-              _buildTeamDisplay(true, match.homeTeamName, match.homeTeamLogo),
-              _buildScoreOrTimeDisplay(),
-              _buildTeamDisplay(false, match.awayTeamName, match.awayTeamLogo),
+              // Match stage and date
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isFinished
+                          ? Colors.grey.withOpacity(0.1)
+                          : AppConfig.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      match.matchStage,
+                      style: TextStyle(
+                        color: isFinished ? Colors.grey[700] : AppConfig.primaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    DateFormat('dd MMM, HH:mm').format(match.date),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isWeb ? 24 : 20),
+              // Teams and score
+              Row(
+                children: [
+                  _buildModernTeamDisplay(true, match.homeTeamName, match.homeTeamLogo, context),
+                  _buildModernScoreDisplay(context),
+                  _buildModernTeamDisplay(false, match.awayTeamName, match.awayTeamLogo, context),
+                ],
+              ),
             ],
           ),
         ),
@@ -124,6 +182,130 @@ class MatchCard extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernTeamDisplay(bool isHome, String name, String logo, BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = AppConfig.isWeb(screenWidth);
+
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            width: isWeb ? 60 : 50,
+            height: isWeb ? 60 : 50,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.grey.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: TeamLogo(
+                logoFileName: logo,
+                size: isWeb ? 60 : 50,
+              ),
+            ),
+          ),
+          SizedBox(height: isWeb ? 12 : 8),
+          Text(
+            name,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: isWeb ? 16 : 14,
+              color: const Color(0xFF1A1A1A),
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernScoreDisplay(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = AppConfig.isWeb(screenWidth);
+    final isFinished = match.status == 'Finished';
+    final hasPenalties = isFinished && (match.penaltyHomeScore != null || match.penaltyAwayScore != null);
+
+    return Container(
+      width: isWeb ? 120 : 100,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              color: isFinished
+                  ? const Color(0xFFF8F9FA)
+                  : AppConfig.primaryColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isFinished
+                    ? Colors.grey.withOpacity(0.2)
+                    : AppConfig.primaryColor.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Text(
+              isFinished
+                  ? '${match.homeScore} : ${match.awayScore}'
+                  : DateFormat('HH:mm').format(match.date),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: isFinished ? const Color(0xFF1A1A1A) : AppConfig.primaryColor,
+                fontSize: isWeb ? 20 : 18,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          if (hasPenalties) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Penalties: ${match.penaltyHomeScore} - ${match.penaltyAwayScore}',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          if (isFinished) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppConfig.accentColor.withOpacity(0.15),
+                    Colors.green.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppConfig.accentColor.withOpacity(0.3),
+                  width: 0.5,
+                ),
+              ),
+              child: Text(
+                'FULL TIME',
+                style: TextStyle(
+                  color: Colors.green[800],
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

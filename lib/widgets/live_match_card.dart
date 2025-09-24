@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sports_app/models/match_model.dart';
 import 'package:sports_app/screens/match_detail_screen.dart';
+import 'package:sports_app/config/app_config.dart';
+import 'package:sports_app/widgets/safe_image.dart';
 
 class LiveMatchCard extends StatelessWidget {
   final Match match;
@@ -9,16 +11,20 @@ class LiveMatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = AppConfig.isWeb(screenWidth);
+    final cardWidth = isWeb ? 400.0 : 320.0;
+
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => MatchDetailScreen(match: match))),
       child: Container(
-        width: 320,
-        margin: const EdgeInsets.only(right: 10),
+        width: cardWidth,
+        margin: EdgeInsets.only(right: isWeb ? 16 : 10),
         child: Card(
-          color: newBlue,
+          color: AppConfig.secondaryColor,
           elevation: 4,
-          shadowColor: newBlue.withOpacity(0.3),
+          shadowColor: AppConfig.secondaryColor.withOpacity(0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
@@ -53,18 +59,18 @@ class LiveMatchCard extends StatelessWidget {
                 // Middle section for teams and score
                 Row(
                   children: [
-                    Expanded(child: _buildTeamDisplay(match.homeTeamName, match.homeTeamLogo)),
+                    Expanded(child: _buildTeamDisplay(match.homeTeamName, match.homeTeamLogo, context)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: EdgeInsets.symmetric(horizontal: isWeb ? 12.0 : 8.0),
                       child: Text(
                         '${match.homeScore}:${match.awayScore}',
-                        style: const TextStyle(
-                            fontSize: 36,
+                        style: TextStyle(
+                            fontSize: isWeb ? 42 : 36,
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
                       ),
                     ),
-                    Expanded(child: _buildTeamDisplay(match.awayTeamName, match.awayTeamLogo)),
+                    Expanded(child: _buildTeamDisplay(match.awayTeamName, match.awayTeamLogo, context)),
                   ],
                 ),
                 // Bottom section for Live indicator
@@ -73,12 +79,18 @@ class LiveMatchCard extends StatelessWidget {
                   children: [
                     const _LiveIndicator(), // Pulsating dot
                     const SizedBox(width: 6),
-                    const Text(
+                    Text(
                       'LIVE',
                       style: TextStyle(
-                        color: Colors.red,
+                        color: AppConfig.accentColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 2,
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -96,16 +108,17 @@ class LiveMatchCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTeamDisplay(String name, String logoFileName) {
+  Widget _buildTeamDisplay(String name, String logoFileName, BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = AppConfig.isWeb(screenWidth);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Image.asset(
-          'assets/images/$logoFileName',
-          width: 45,
-          height: 45,
+        TeamLogo(
+          logoFileName: logoFileName,
+          size: isWeb ? 55 : 45,
           color: Colors.white,
-          errorBuilder: (c, o, s) => const Icon(Icons.shield, size: 45, color: Colors.white),
         ),
         const SizedBox(height: 8),
         Text(
@@ -152,9 +165,16 @@ class _LiveIndicatorState extends State<_LiveIndicator>
       child: Container(
         width: 8,
         height: 8,
-        decoration: const BoxDecoration(
-          color: Colors.red,
+        decoration: BoxDecoration(
+          color: AppConfig.accentColor,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppConfig.accentColor.withOpacity(0.6),
+              blurRadius: 4,
+              spreadRadius: 1,
+            ),
+          ],
         ),
       ),
     );

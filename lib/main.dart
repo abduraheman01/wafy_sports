@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:sports_app/firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sports_app/screens/simple_manager_page.dart';
-
+import 'package:sports_app/services/notification_service.dart';
 import 'package:sports_app/screens/splash_screen.dart';
 
 Future<void> main() async {
@@ -11,6 +11,10 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize notification service for PWA
+  await NotificationService.instance.initialize();
+
   runApp(const MyApp());
 }
 
@@ -22,22 +26,78 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Wafy Sports',
       theme: ThemeData(
+        useMaterial3: true,
         brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFF5F5F8),
-        primaryColor: const Color(0xFFE81C61),
-        textTheme: GoogleFonts.manropeTextTheme(),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFF5F5F8),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFDF1A19), // Official Red
+          brightness: Brightness.light,
+          primary: const Color(0xFFDF1A19),
+          secondary: const Color(0xFF002675),
+          background: const Color(0xFFF8F9FA),
+          surface: Colors.white,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+        textTheme: GoogleFonts.poppinsTextTheme(
+          Theme.of(context).textTheme.copyWith(
+            displayLarge: GoogleFonts.poppins(fontWeight: FontWeight.w800),
+            displayMedium: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+            headlineMedium: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            titleLarge: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            bodyLarge: GoogleFonts.poppins(fontWeight: FontWeight.w400),
+            bodyMedium: GoogleFonts.poppins(fontWeight: FontWeight.w400),
+          ),
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.white,
           elevation: 0,
-          surfaceTintColor: Color(0xFFF5F5F8),
-          iconTheme: IconThemeData(color: Colors.black87),
-          titleTextStyle: TextStyle(
-              color: Colors.black87, fontSize: 22, fontWeight: FontWeight.bold),
+          shadowColor: Colors.grey.withOpacity(0.1),
+          surfaceTintColor: Colors.transparent,
+          iconTheme: const IconThemeData(color: Color(0xFF1A1A1A)),
+          titleTextStyle: GoogleFonts.poppins(
+            color: const Color(0xFF1A1A1A),
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          color: Colors.white,
+          shadowColor: Colors.grey.withOpacity(0.15),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFDF1A19), // Official Red
+            foregroundColor: Colors.white,
+            elevation: 8,
+            shadowColor: const Color(0xFFDF1A19).withOpacity(0.3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+            textStyle: GoogleFonts.poppins(
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        tabBarTheme: TabBarThemeData(
+          labelStyle: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: GoogleFonts.poppins(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
         ),
       ),
-      
+
       home: const SplashScreen(),
-      
+
       debugShowCheckedModeBanner: false,
     );
   }

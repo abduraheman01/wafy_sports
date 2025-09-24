@@ -18,21 +18,170 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Wafy Sports - Your Sports Hub. Track matches, leaderboards and live sports updates.">
+  <meta name="keywords" content="sports, football, matches, leaderboard, wafy sports, live scores">
+  <meta name="author" content="Wafy Sports">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="">
+  <meta property="og:title" content="Wafy Sports - Your Sports Hub">
+  <meta property="og:description" content="Track matches, leaderboards and live sports updates with Wafy Sports.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="sportify">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Wafy Sports">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>sportify</title>
+  <title>Wafy Sports - Your Sports Hub</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    #loading {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #F5F5F8 0%, #ffffff 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+
+    .loading-logo {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #DF1A19 0%, #002675 100%);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 24px;
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 20px rgba(223, 26, 25, 0.3), 0 0 40px rgba(255, 203, 41, 0.1);
+    }
+
+    .loading-logo::after {
+      content: '⚽';
+      font-size: 48px;
+      color: white;
+    }
+
+    .loading-text {
+      font-size: 24px;
+      font-weight: bold;
+      color: #002675;
+      margin-bottom: 8px;
+    }
+
+    .loading-subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 32px;
+    }
+
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #DF1A19;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #flutter-loading {
+      opacity: 1;
+      transition: opacity 0.3s;
+    }
+
+    .flutter-ready #flutter-loading {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
+  <div id="loading">
+    <div class="loading-logo"></div>
+    <div class="loading-text">Wafy Sports</div>
+    <div class="loading-subtitle">Loading your sports hub...</div>
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script>
+    window.addEventListener('flutter-first-frame', function() {
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.style.display = 'none';
+      }
+    });
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('ServiceWorker registration successful');
+
+            // Request notification permission
+            if ('Notification' in window && navigator.serviceWorker) {
+              if (Notification.permission === 'default') {
+                setTimeout(() => {
+                  Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                      console.log('Notification permission granted');
+                    }
+                  });
+                }, 3000); // Wait 3 seconds before asking
+              }
+            }
+          })
+          .catch(function(err) {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+
+    // PWA Install Prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent Chrome 67 and earlier from automatically showing the prompt
+      e.preventDefault();
+      // Stash the event so it can be triggered later
+      deferredPrompt = e;
+
+      // Make install button visible
+      window.showInstallPrompt = function() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the A2HS prompt');
+            } else {
+              console.log('User dismissed the A2HS prompt');
+            }
+            deferredPrompt = null;
+          });
+        }
+      };
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
