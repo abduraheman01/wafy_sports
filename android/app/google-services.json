@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "791706601942",
-    "project_id": "flutterapplication2-4642c",
-    "storage_bucket": "flutterapplication2-4642c.firebasestorage.app"
+    "project_number": "1035041308923",
+    "project_id": "wafy-sports",
+    "storage_bucket": "wafy-sports.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:791706601942:android:6c056da99ce0e19c82fc77",
+        "mobilesdk_app_id": "1:1035041308923:android:128ed5d6d169ff6fc2305e",
         "android_client_info": {
           "package_name": "com.example.sports_app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBGNmzJVekyx_SBdndSYZZOKzEEAfx31TI"
+          "current_key": "AIzaSyBKi5DQP0xjFWdtjQXUWjj_PVumSM3Yj5Q"
         }
       ],
       "services": {

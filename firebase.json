@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"flutterapplication2-4642c","appId":"1:791706601942:android:6c056da99ce0e19c82fc77","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"flutterapplication2-4642c","configurations":{"android":"1:791706601942:android:6c056da99ce0e19c82fc77","ios":"1:791706601942:ios:0ad59006899458d382fc77","macos":"1:791706601942:ios:0ad59006899458d382fc77","web":"1:791706601942:web:eefdb821a38edaf082fc77","windows":"1:791706601942:web:87aa6427c6fc0baa82fc77"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "wafy-sports",
+          "appId": "1:1035041308923:android:128ed5d6d169ff6fc2305e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "wafy-sports",
+          "configurations": {
+            "android": "1:1035041308923:android:128ed5d6d169ff6fc2305e",
+            "ios": "1:1035041308923:ios:74d6cb0143b9667bc2305e",
+            "macos": "1:1035041308923:ios:74d6cb0143b9667bc2305e",
+            "web": "1:1035041308923:web:ca6fa627b58f0134c2305e",
+            "windows": "1:1035041308923:web:6c2dcae77e136b9ac2305e"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

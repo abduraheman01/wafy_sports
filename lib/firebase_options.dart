@@ -41,49 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAd_BzlzcQWzsrxDi0dDz5MQWPGsx00iSM',
-    appId: '1:791706601942:web:eefdb821a38edaf082fc77',
-    messagingSenderId: '791706601942',
-    projectId: 'flutterapplication2-4642c',
-    authDomain: 'flutterapplication2-4642c.firebaseapp.com',
-    storageBucket: 'flutterapplication2-4642c.firebasestorage.app',
-    measurementId: 'G-TNQD3SW570',
+    apiKey: 'AIzaSyBxNILXZnFj4Ghvh2IRo2mlUl_ioF-csXA',
+    appId: '1:1035041308923:web:ca6fa627b58f0134c2305e',
+    messagingSenderId: '1035041308923',
+    projectId: 'wafy-sports',
+    authDomain: 'wafy-sports.firebaseapp.com',
+    storageBucket: 'wafy-sports.firebasestorage.app',
+    measurementId: 'G-V88VV2JCFQ',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBGNmzJVekyx_SBdndSYZZOKzEEAfx31TI',
-    appId: '1:791706601942:android:6c056da99ce0e19c82fc77',
-    messagingSenderId: '791706601942',
-    projectId: 'flutterapplication2-4642c',
-    storageBucket: 'flutterapplication2-4642c.firebasestorage.app',
+    apiKey: 'AIzaSyBKi5DQP0xjFWdtjQXUWjj_PVumSM3Yj5Q',
+    appId: '1:1035041308923:android:128ed5d6d169ff6fc2305e',
+    messagingSenderId: '1035041308923',
+    projectId: 'wafy-sports',
+    storageBucket: 'wafy-sports.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyD4C3UVnL8aZXu9M3lVy6CLMuS6m7a4MiY',
-    appId: '1:791706601942:ios:0ad59006899458d382fc77',
-    messagingSenderId: '791706601942',
-    projectId: 'flutterapplication2-4642c',
-    storageBucket: 'flutterapplication2-4642c.firebasestorage.app',
+    apiKey: 'AIzaSyBPklbqqyEw9Vg-8yPOwFh3jvTCzO9F3LU',
+    appId: '1:1035041308923:ios:74d6cb0143b9667bc2305e',
+    messagingSenderId: '1035041308923',
+    projectId: 'wafy-sports',
+    storageBucket: 'wafy-sports.firebasestorage.app',
     iosBundleId: 'com.example.sportsApp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyD4C3UVnL8aZXu9M3lVy6CLMuS6m7a4MiY',
-    appId: '1:791706601942:ios:0ad59006899458d382fc77',
-    messagingSenderId: '791706601942',
-    projectId: 'flutterapplication2-4642c',
-    storageBucket: 'flutterapplication2-4642c.firebasestorage.app',
+    apiKey: 'AIzaSyBPklbqqyEw9Vg-8yPOwFh3jvTCzO9F3LU',
+    appId: '1:1035041308923:ios:74d6cb0143b9667bc2305e',
+    messagingSenderId: '1035041308923',
+    projectId: 'wafy-sports',
+    storageBucket: 'wafy-sports.firebasestorage.app',
     iosBundleId: 'com.example.sportsApp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAd_BzlzcQWzsrxDi0dDz5MQWPGsx00iSM',
-    appId: '1:791706601942:web:87aa6427c6fc0baa82fc77',
-    messagingSenderId: '791706601942',
-    projectId: 'flutterapplication2-4642c',
-    authDomain: 'flutterapplication2-4642c.firebaseapp.com',
-    storageBucket: 'flutterapplication2-4642c.firebasestorage.app',
-    measurementId: 'G-XLST2PYGF4',
+    apiKey: 'AIzaSyBxNILXZnFj4Ghvh2IRo2mlUl_ioF-csXA',
+    appId: '1:1035041308923:web:6c2dcae77e136b9ac2305e',
+    messagingSenderId: '1035041308923',
+    projectId: 'wafy-sports',
+    authDomain: 'wafy-sports.firebaseapp.com',
+    storageBucket: 'wafy-sports.firebasestorage.app',
+    measurementId: 'G-L206B5QHST',
   );
 
 }

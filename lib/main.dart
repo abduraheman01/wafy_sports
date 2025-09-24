@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sports_app/firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sports_app/screens/home_screen.dart';
+import 'package:sports_app/screens/simple_manager_page.dart';
+
+import 'package:sports_app/screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,9 +34,10 @@ class MyApp extends StatelessWidget {
           titleTextStyle: TextStyle(
               color: Colors.black87, fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        
       ),
-      home: const HomeScreen(),
+      
+      home: const SplashScreen(),
+      
       debugShowCheckedModeBanner: false,
     );
   }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sports_app/models/match_model.dart';
-import 'package:sports_app/widgets/match_card.dart';
 import 'package:sports_app/screens/full_match_list_page.dart';
+import 'package:sports_app/screens/simple_manager_page.dart';
+import 'package:sports_app/widgets/live_match_card.dart';
+import 'package:sports_app/widgets/match_card.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class MatchesPage extends StatefulWidget {
   const MatchesPage({super.key});
@@ -12,7 +15,10 @@ class MatchesPage extends StatefulWidget {
 
 class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _categories = ['6s', '5s', '7s'];
+  // UPDATED: Changed category names
+  final List<String> _categories = ['Sub Junior', 'Junior', 'Senior'];
+  static const Color newBlue = Color(0xFF002675);
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void initState() {
@@ -23,116 +29,245 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
   @override
   void dispose() {
     _tabController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TabBar(
-          controller: _tabController,
-          tabs: _categories.map((String category) => Tab(text: category)).toList(),
-          indicatorColor: Colors.white,
-          indicatorWeight: 3.0,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: _categories.map((String category) {
-              return CategoryMatchesList(category: category);
-            }).toList(),
+  void _showPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Manager Access'),
+          content: TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(hintText: 'Enter Password'),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class CategoryMatchesList extends StatefulWidget {
-  final String category;
-  const CategoryMatchesList({super.key, required this.category});
-
-  @override
-  State<CategoryMatchesList> createState() => _CategoryMatchesListState();
-}
-
-class _CategoryMatchesListState extends State<CategoryMatchesList> with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('matches')
-          .where('category', isEqualTo: widget.category)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}\n\nThis usually means you need to create a Firestore Index. Check your debug console for a link to create it."));
-        }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Center(child: Text("No matches for ${widget.category}."));
-        }
-
-        final allMatches = snapshot.data!.docs.map((doc) => Match.fromFirestore(doc)).toList();
-        
-        // Separate matches into lists based on status
-        final live = allMatches.where((m) => m.status == 'Live').toList();
-        final finished = allMatches.where((m) => m.status == 'Finished').toList();
-        final upcoming = allMatches.where((m) => m.status == 'Upcoming').toList();
-
-        return ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            if (live.isNotEmpty) ...[
-              _buildSectionHeader(context, "Live Matches"),
-              ...live.map((match) => MatchCard(match: match)),
-              const SizedBox(height: 24),
-            ],
-            
-            _buildSectionHeader(context, "Finished Matches", () {
-              if (finished.isEmpty) return;
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => FullMatchListPage(title: "Finished Matches", matches: finished)
-              ));
-            }),
-            if(finished.isEmpty) const Center(child: Text("No finished matches.")),
-            ...finished.take(2).map((match) => MatchCard(match: match)),
-            const SizedBox(height: 24),
-
-            _buildSectionHeader(context, "Upcoming Matches", () {
-               if (upcoming.isEmpty) return;
-               Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => FullMatchListPage(title: "Upcoming Matches", matches: upcoming)
-              ));
-            }),
-            if(upcoming.isEmpty) const Center(child: Text("No upcoming matches.")),
-            ...upcoming.take(2).map((match) => MatchCard(match: match)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_passwordController.text == 'abdu15211') {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SimpleManagerPage()),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Incorrect Password')),
+                  );
+                }
+                _passwordController.clear();
+              },
+              child: const Text('Login'),
+            ),
           ],
         );
       },
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, [VoidCallback? onSeeMore]) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeader(double headerHeight) {
+    return GestureDetector(
+      onDoubleTap: _showPasswordDialog,
+      child: Container(
+        height: headerHeight,
+        width: double.infinity,
+        
+        alignment: Alignment.center,
+        padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+        child: Image.asset(
+          'assets/images/LogoWide.png',
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double headerHeight = screenHeight / 5;
+
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      extendBodyBehindAppBar: true,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(headerHeight),
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('matches')
+                  .orderBy('date', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator(),
+                  ));
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text("No matches found."));
+                }
+
+                final allMatches = snapshot.data!.docs
+                    .map((doc) => Match.fromFirestore(doc))
+                    .toList();
+
+                final liveMatches = allMatches.where((m) => m.status == 'Live').toList();
+                final otherMatches = allMatches.where((m) => m.status != 'Live').toList();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (liveMatches.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
+                        child: Text(
+                          "Live Match",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Colors.black87),
+                        ),
+                      ),
+                      CarouselSlider.builder(
+                        itemCount: liveMatches.length,
+                        itemBuilder: (context, index, realIndex) {
+                          return LiveMatchCard(match: liveMatches[index]);
+                        },
+                        options: CarouselOptions(
+                          height: 180,
+                          autoPlay: true,
+                          enlargeCenterPage: true,
+                          viewportFraction: 0.85,
+                          enlargeFactor: 0.2,
+                        ),
+                      ),
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 8.0),
+                      child: TabBar(
+                        controller: _tabController,
+                        tabs: _categories
+                            .map((String category) => Tab(text: category))
+                            .toList(),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.black54,
+                        labelStyle: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14),
+                        indicator: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: newBlue,
+                        ),
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: _categories.map((category) {
+                          return CategorizedMatchView(
+                            matches: otherMatches,
+                            category: category,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CategorizedMatchView extends StatelessWidget {
+  final List<Match> matches;
+  final String category;
+
+  const CategorizedMatchView({
+    super.key,
+    required this.matches,
+    required this.category,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final categoryMatches = matches.where((m) => m.category == category).toList();
+    final finishedMatches = categoryMatches.where((m) => m.status == 'Finished').toList();
+    final upcomingMatches = categoryMatches.where((m) => m.status == 'Upcoming').toList();
+
+    if (categoryMatches.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Text("No matches for $category."),
+        ),
+      );
+    }
+    
+    return SingleChildScrollView(
+      child: Column(
         children: [
-          Text(title, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-          if(onSeeMore != null)
-            TextButton(
-              onPressed: onSeeMore,
-              child: const Text("See More", style: TextStyle(color: Colors.white70)),
-            )
+          _buildMatchSection(context, 'Finished Matches', finishedMatches),
+          _buildMatchSection(context, 'Upcoming Matches', upcomingMatches),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMatchSection(BuildContext context, String title, List<Match> matches) {
+    if (matches.isEmpty) return const SizedBox.shrink();
+
+    const int displayLimit = 2;
+    final bool hasMore = matches.length > displayLimit;
+    final List<Match> limitedMatches = hasMore ? matches.sublist(0, displayLimit) : matches;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.black87),
+          ),
+          const SizedBox(height: 12),
+          ...limitedMatches.map((match) => MatchCard(match: match)).toList(),
+          if (hasMore)
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => FullMatchListPage(title: title, matches: matches),
+                  ));
+                },
+                child: const Text('See more'),
+              ),
+            ),
         ],
       ),
     );

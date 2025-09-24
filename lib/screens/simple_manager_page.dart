@@ -17,23 +17,26 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
   final _homeLogoController = TextEditingController();
   final _awayLogoController = TextEditingController();
   TimeOfDay? _selectedTime;
-  String _selectedCategory = '6s';
+  // UPDATED: Default category and list
+  String _selectedCategory = 'Sub Junior';
   String _selectedStage = 'Group Stage';
 
   // Controllers for Player Form
   final _playerNameController = TextEditingController();
   final _playerTeamNameController = TextEditingController();
   final _playerTeamLogoController = TextEditingController();
-  String _playerSelectedCategory = '6s';
+  // UPDATED: Default category
+  String _playerSelectedCategory = 'Sub Junior';
 
-  // Controllers for Event Form
+  // ... (rest of the controllers are unchanged)
   final _eventPlayerController = TextEditingController();
   final _eventMinuteController = TextEditingController();
-
-  // Controllers for Update Form
   final _updateTimeController = TextEditingController();
   final _penaltyHomeController = TextEditingController();
   final _penaltyAwayController = TextEditingController();
+
+  final List<String> _categories = ['Sub Junior', 'Junior', 'Senior'];
+
 
   void _selectTime() async {
     final TimeOfDay? picked = await showTimePicker(
@@ -110,7 +113,8 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Player added successfully!")));
   }
-
+  
+  // ... (dialog functions _showAddEventDialog and _showUpdateMatchDialog are unchanged)
   void _showAddEventDialog(String matchId) {
     String eventType = 'goal';
     String team = 'home';
@@ -283,6 +287,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -291,14 +296,15 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         padding: const EdgeInsets.all(16),
         children: [
           _buildCard(
-            title: 'Schedule New Match for Sep 25, 2025',
+            title: 'Schedule New Match',
             children: [
               Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _selectedCategory,
-                      items: ['6s', '5s', '7s'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                      // UPDATED: Using new category list
+                      items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                       onChanged: (val) => setState(() => _selectedCategory = val!),
                       decoration: const InputDecoration(labelText: 'Category'),
                     ),
@@ -336,7 +342,8 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
             children: [
               DropdownButtonFormField<String>(
                 value: _playerSelectedCategory,
-                items: ['6s', '5s', '7s'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                // UPDATED: Using new category list
+                items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                 onChanged: (val) => setState(() => _playerSelectedCategory = val!),
                 decoration: const InputDecoration(labelText: 'Category'),
               ),

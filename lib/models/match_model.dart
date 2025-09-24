@@ -20,6 +20,7 @@ class MatchEvent {
 
 class Match {
   final String id;
+  final String category; // <-- ADD THIS LINE
   final String status;
   final String matchStage;
   final String homeTeamName;
@@ -36,6 +37,7 @@ class Match {
 
   Match({
     required this.id,
+    required this.category, // <-- ADD THIS LINE
     required this.status,
     required this.matchStage,
     required this.homeTeamName,
@@ -59,6 +61,7 @@ class Match {
 
     return Match(
       id: doc.id,
+      category: data['category']?.toString() ?? 'Uncategorized', // <-- ADD THIS LINE
       status: data['status']?.toString() ?? 'Upcoming',
       matchStage: data['matchStage']?.toString() ?? 'Group Stage',
       homeTeamName: data['homeTeamName']?.toString() ?? '',

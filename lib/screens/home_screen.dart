@@ -20,25 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 40,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
-          child: Image.asset('assets/images/logo.png'),
-        ),
-        title: const Text('Wafy Sports',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            tooltip: "Manager Page",
-            icon: Icon(Icons.settings, color: Colors.grey.shade400),
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => const SimpleManagerPage()));
-            },
-          ),
-        ],
-      ),
+      
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sports_app/models/match_model.dart';
 import 'package:sports_app/screens/match_detail_screen.dart';
 import 'package:intl/intl.dart';
-import 'package:sports_app/widgets/custom_card.dart';
-import 'package:sports_app/widgets/live_match_card.dart'; // FIXED: Add this import
 
 class MatchCard extends StatelessWidget {
   final Match match;
@@ -11,78 +9,123 @@ class MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Show a special dark card for live matches
-    if (match.status == 'Live') {
-      return LiveMatchCard(match: match);
-    }
-
-    // Use your white CustomCard for other matches
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => MatchDetailScreen(match: match))),
-      child: CustomCard(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-                child: _buildTeamDisplay(
-                    match.homeTeamName, match.homeTeamLogo)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                children: [
-                  Text(
-                    match.status == 'Finished'
-                        ? '${match.homeScore} - ${match.awayScore}'
-                        : DateFormat('HH:mm').format(match.date),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 16),
-                  ),
-                  if (match.status == 'Finished')
-                    Text(DateFormat('dd MMM').format(match.date),
-                        style: const TextStyle(color: Colors.grey, fontSize: 12))
-                ],
-              ),
-            ),
-            Expanded(
-                child: _buildTeamDisplay(
-                    match.awayTeamName, match.awayTeamLogo,
-                    isHome: false)),
-          ],
+      child: Card(
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.1),
+        margin: const EdgeInsets.only(bottom: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildTeamDisplay(true, match.homeTeamName, match.homeTeamLogo),
+              _buildScoreOrTimeDisplay(),
+              _buildTeamDisplay(false, match.awayTeamName, match.awayTeamLogo),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTeamDisplay(String name, String logoFileName,
-      {bool isHome = true}) {
-    return Row(
-      mainAxisAlignment: isHome ? MainAxisAlignment.end : MainAxisAlignment.start,
-      children: [
-        if (!isHome) ...[
-          Image.asset('assets/images/$logoFileName',
+  Widget _buildTeamDisplay(bool isHome, String name, String logo) {
+    return Expanded(
+      child: Row(
+        mainAxisAlignment: isHome ? MainAxisAlignment.start : MainAxisAlignment.end,
+        children: [
+          if (!isHome) ...[
+            Flexible(
+              child: Text(
+                name,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Image.asset('assets/images/$logo',
               width: 35,
               height: 35,
               errorBuilder: (c, o, s) => const Icon(Icons.shield, size: 35)),
-          const SizedBox(width: 12),
+          if (isHome) ...[
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                name,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ],
-        Flexible(
-            child: Text(name,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                    fontSize: 16),
-                overflow: TextOverflow.ellipsis)),
-        if (isHome) ...[
-          const SizedBox(width: 12),
-          Image.asset('assets/images/$logoFileName',
-              width: 35,
-              height: 35,
-              errorBuilder: (c, o, s) => const Icon(Icons.shield, size: 35)),
+      ),
+    );
+  }
+
+  Widget _buildScoreOrTimeDisplay() {
+    bool isFinished = match.status == 'Finished';
+    bool hasPenalties = isFinished && (match.penaltyHomeScore != null || match.penaltyAwayScore != null);
+
+    return Container(
+      width: 90,
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Text(
+            isFinished
+                ? '${match.homeScore} - ${match.awayScore}'
+                : DateFormat('HH:mm').format(match.date),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              fontSize: 18,
+            ),
+          ),
+          if (hasPenalties)
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: Text(
+                '(${match.penaltyHomeScore} - ${match.penaltyAwayScore}) Pens',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+          const SizedBox(height: 4),
+          Text(
+            DateFormat('dd MMM').format(match.date),
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            match.matchStage,
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 11, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          ),
+          // ADDED: Conditionally display "FT" for finished matches
+          if (isFinished)
+            const Padding(
+              padding: EdgeInsets.only(top: 4.0),
+              child: Text(
+                'FT',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
         ],
-      ],
+      ),
     );
   }
 }
