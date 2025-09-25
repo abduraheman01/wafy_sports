@@ -5,8 +5,8 @@ class AppConfig {
 
   static const Duration splashDuration = Duration(milliseconds: 3500);
 
-  static const String appName = 'Wafy Sports';
-  static const String appTagline = 'Your Sports Hub';
+  static const String appName = 'Sportify';
+  static const String appTagline = 'Your Music-Powered Sports Hub';
 
   // Official Brand Colors
   static const Color primaryColor = Color(0xFFDF1A19); // Red
@@ -24,7 +24,7 @@ class AppConfig {
   static const Color textSecondary = Color(0xFF666666);
   static const Color borderColor = Color(0xFFE0E0E0);
 
-  static const double webBreakpoint = 600.0;
+  static const double webBreakpoint = 800.0;
   static const double tabletBreakpoint = 900.0;
   static const double desktopBreakpoint = 1200.0;
 

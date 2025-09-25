@@ -34,6 +34,12 @@ class Match {
   final String time;
   final DateTime date;
   final List<MatchEvent> events;
+  final int currentMinute;
+  final int currentSecond;
+  final String gamePhase; // 'first_half', 'halftime', 'second_half', 'finished'
+  final bool isTimerRunning;
+  final DateTime? timerStartTime;
+  final DateTime? halftimeStartTime;
 
   Match({
     required this.id,
@@ -51,6 +57,12 @@ class Match {
     required this.time,
     required this.date,
     required this.events,
+    this.currentMinute = 0,
+    this.currentSecond = 0,
+    this.gamePhase = 'first_half',
+    this.isTimerRunning = false,
+    this.timerStartTime,
+    this.halftimeStartTime,
   });
 
   factory Match.fromFirestore(DocumentSnapshot doc) {
@@ -75,6 +87,12 @@ class Match {
       time: data['time']?.toString() ?? '0\'',
       date: (data['date'] as Timestamp? ?? Timestamp.now()).toDate(),
       events: eventsList,
+      currentMinute: int.tryParse(data['currentMinute']?.toString() ?? '0') ?? 0,
+      currentSecond: int.tryParse(data['currentSecond']?.toString() ?? '0') ?? 0,
+      gamePhase: data['gamePhase']?.toString() ?? 'first_half',
+      isTimerRunning: data['isTimerRunning'] == true,
+      timerStartTime: data['timerStartTime'] != null ? (data['timerStartTime'] as Timestamp).toDate() : null,
+      halftimeStartTime: data['halftimeStartTime'] != null ? (data['halftimeStartTime'] as Timestamp).toDate() : null,
     );
   }
 }

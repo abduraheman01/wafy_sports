@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(flutter:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git config:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []

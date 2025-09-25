@@ -131,12 +131,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               // Elegant fallback with branding
               Container(
                 decoration: const BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.center,
-                    radius: 1.0,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF002675),
-                      Color(0xFF000000),
+                      Color(0xFF1a1a2e),
+                      Color(0xFF16213e),
+                      Color(0xFF0f3460),
                     ],
                   ),
                 ),
@@ -150,39 +151,22 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         ScaleTransition(
                           scale: _fallbackAnimation,
                           child: Container(
-                            width: isWeb ? 180 : 140,
-                            height: isWeb ? 180 : 140,
+                            padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  AppConfig.primaryColor,
-                                  AppConfig.secondaryColor,
-                                ],
-                              ),
+                              borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppConfig.primaryColor.withOpacity(0.4),
-                                  blurRadius: 30,
-                                  spreadRadius: 10,
-                                ),
-                                BoxShadow(
-                                  color: AppConfig.accentColor.withOpacity(0.2),
-                                  blurRadius: 40,
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 20,
                                   spreadRadius: 5,
                                 ),
                               ],
                             ),
-                            child: SafeImage(
-                              imagePath: 'assets/images/logo.png',
-                              width: isWeb ? 180 : 140,
-                              height: isWeb ? 180 : 140,
+                            child: Image.asset(
+                              'assets/images/logored.png',
+                              width: isWeb ? 200 : 160,
+                              height: isWeb ? 200 : 160,
                               fit: BoxFit.contain,
-                              fallbackWidget: const Icon(
-                                Icons.sports_soccer,
-                                size: 80,
-                                color: Colors.white,
-                              ),
                             ),
                           ),
                         ),
@@ -215,7 +199,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               ),
                               // Simple main title
                               Text(
-                                'WAFY SPORTS',
+                                'SPORTIFY',
                                 style: TextStyle(
                                   fontSize: isWeb ? 42 : 32,
                                   fontWeight: FontWeight.w800,
@@ -243,7 +227,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   ),
                                 ),
                                 child: Text(
-                                  'YOUR ULTIMATE SPORTS EXPERIENCE',
+                                  'YOUR MUSIC-POWERED SPORTS HUB',
                                   style: TextStyle(
                                     fontSize: isWeb ? 16 : 12,
                                     color: Colors.white.withOpacity(0.95),

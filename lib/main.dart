@@ -4,7 +4,7 @@ import 'package:sports_app/firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sports_app/screens/simple_manager_page.dart';
 import 'package:sports_app/services/notification_service.dart';
-import 'package:sports_app/screens/splash_screen.dart';
+import 'package:sports_app/screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Wafy Sports',
+      title: 'Sportify',
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -96,7 +96,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      home: const SplashScreen(),
+      home: const HomeScreen(),
 
       debugShowCheckedModeBanner: false,
     );

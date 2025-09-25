@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sports_app/screens/leaderboard_screen.dart';
 import 'package:sports_app/screens/matches_page.dart';
 import 'package:sports_app/screens/simple_manager_page.dart';
-import 'package:sports_app/widgets/pwa_install_prompt.dart';
 import 'package:sports_app/config/app_config.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -69,18 +68,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: AppConfig.primaryColor,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Icon(
-                                      Icons.sports_soccer,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
+                                   
                                   ),
                                   const SizedBox(width: 8),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       const Text(
-                                        'WAFY SPORTS',
+                                        'SPORTIFY',
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w900,
@@ -125,9 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                        // PWA Install Banner
-                        const SizedBox(height: 12),
-                        const PWAInstallBanner(),
                       ],
                     ),
                   ),
@@ -142,8 +134,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          // PWA Install Prompt
-          const PWAInstallPrompt(),
         ],
       ),
     );

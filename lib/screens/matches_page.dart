@@ -135,7 +135,7 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
                         children: [
                           // Main title - bold black text
                           Text(
-                            'WAFY SPORTS',
+                            'SPORTIFY',
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: isWeb ? 20 : 16,
@@ -360,7 +360,8 @@ class CategorizedMatchView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final categoryMatches = matches.where((m) => m.category == category).toList();
+    final categoryMatches = matches.where((m) =>
+        m.category.toLowerCase().trim() == category.toLowerCase().trim()).toList();
 
     // Sort finished matches by most recent first
     final finishedMatches = categoryMatches.where((m) => m.status == 'Finished').toList();
