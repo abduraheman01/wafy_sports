@@ -39,10 +39,10 @@ class SafeImage extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -90,7 +90,7 @@ class TeamLogo extends StatelessWidget {
     final actualSize = size ?? 40.0;
 
     return SafeImage(
-      imagePath: 'assets/images/$logoFileName',
+      imagePath: logoFileName,
       width: actualSize,
       height: actualSize,
       color: color,
@@ -98,10 +98,10 @@ class TeamLogo extends StatelessWidget {
         width: actualSize,
         height: actualSize,
         decoration: BoxDecoration(
-          color: AppConfig.primaryColor.withOpacity(0.1),
+          color: AppConfig.primaryColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: AppConfig.primaryColor.withOpacity(0.2),
+            color: AppConfig.primaryColor.withValues(alpha: 0.2),
             width: 1,
           ),
         ),

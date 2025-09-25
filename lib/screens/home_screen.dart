@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sports_app/screens/leaderboard_screen.dart';
 import 'package:sports_app/screens/matches_page.dart';
-import 'package:sports_app/screens/simple_manager_page.dart';
 import 'package:sports_app/config/app_config.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -42,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
+                      color: Colors.grey.withValues(alpha: 0.08),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -156,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -206,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppConfig.primaryColor.withOpacity(0.1)
+                ? AppConfig.primaryColor.withValues(alpha: 0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),

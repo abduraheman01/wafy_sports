@@ -5,6 +5,7 @@ class Player {
   final String name;
   final String teamName;
   final String teamLogo;
+  final String category;
   final int goals;
   final int saves;
 
@@ -13,6 +14,7 @@ class Player {
     required this.name,
     required this.teamName,
     required this.teamLogo,
+    required this.category,
     required this.goals,
     required this.saves,
   });
@@ -24,6 +26,7 @@ class Player {
       name: data['name']?.toString() ?? '',
       teamName: data['teamName']?.toString() ?? '',
       teamLogo: data['teamLogo']?.toString() ?? '',
+      category: data['category']?.toString() ?? 'Uncategorized',
       goals: int.tryParse(data['goals'].toString()) ?? 0,
       saves: int.tryParse(data['saves'].toString()) ?? 0,
     );

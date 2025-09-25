@@ -95,14 +95,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
     return Scaffold(
       backgroundColor: AppConfig.backgroundColor,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(headerHeight),
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-              child: TabBar(
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverAppBar(
+              title: const Text('Leaderboard'),
+              pinned: true,
+              floating: true,
+              bottom: TabBar(
                 controller: _tabController,
                 tabs: _categories
                     .map((String category) => Tab(text: category))
@@ -119,16 +119,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 dividerColor: Colors.transparent,
               ),
             ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.75,
-              child: TabBarView(
-                  controller: _tabController,
-                  children: _categories.map((String category) {
-                    return CategoryLeaderboard(category: category);
-                  }).toList()),
-            ),
-          ],
-        ),
+          ];
+        },
+        body: TabBarView(
+            controller: _tabController,
+            children: _categories.map((String category) {
+              return CategoryLeaderboard(category: category);
+            }).toList()),
       ),
     );
   }
@@ -140,34 +137,32 @@ class CategoryLeaderboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildLeaderboardSection(
-            context: context,
-            title: 'Top Scorers',
-            stream: FirebaseFirestore.instance
-                .collection('players')
-                .where('category', isEqualTo: category)
-                .orderBy('goals', descending: true)
-                .limit(5)
-                .snapshots(),
-            statField: 'goals',
-          ),
-          const SizedBox(height: 24),
-          _buildLeaderboardSection(
-            context: context,
-            title: 'Most Saves',
-            stream: FirebaseFirestore.instance
-                .collection('players')
-                .where('category', isEqualTo: category)
-                .orderBy('saves', descending: true)
-                .limit(5)
-                .snapshots(),
-            statField: 'saves',
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        _buildLeaderboardSection(
+          context: context,
+          title: 'Top Scorers',
+          stream: FirebaseFirestore.instance
+              .collection('players')
+              .where('category', isEqualTo: category)
+              .orderBy('goals', descending: true)
+              .limit(5)
+              .snapshots(),
+          statField: 'goals',
+        ),
+        const SizedBox(height: 24),
+        _buildLeaderboardSection(
+          context: context,
+          title: 'Most Saves',
+          stream: FirebaseFirestore.instance
+              .collection('players')
+              .where('category', isEqualTo: category)
+              .orderBy('saves', descending: true)
+              .limit(5)
+              .snapshots(),
+          statField: 'saves',
+        ),
+      ],
     );
   }
 
@@ -235,7 +230,7 @@ class CategoryLeaderboard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
+            color: Colors.grey.withValues(alpha: 0.15),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 3),

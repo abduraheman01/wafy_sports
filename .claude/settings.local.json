@@ -4,7 +4,8 @@
       "Bash(flutter:*)",
       "WebSearch",
       "Bash(git config:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

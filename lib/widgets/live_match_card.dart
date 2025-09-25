@@ -24,7 +24,7 @@ class LiveMatchCard extends StatelessWidget {
         child: Card(
           color: AppConfig.secondaryColor,
           elevation: 4,
-          shadowColor: AppConfig.secondaryColor.withOpacity(0.3),
+          shadowColor: AppConfig.secondaryColor.withValues(alpha: 0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
@@ -87,7 +87,7 @@ class LiveMatchCard extends StatelessWidget {
                         fontSize: 14,
                         shadows: [
                           Shadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 2,
                           ),
                         ],
@@ -95,7 +95,12 @@ class LiveMatchCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      match.time,
+                      _getGamePhaseDisplay(match.gamePhase),
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${match.currentMinute.toString().padLeft(2, '0')}:${match.currentSecond.toString().padLeft(2, '0')}',
                       style: const TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                   ],
@@ -129,6 +134,21 @@ class LiveMatchCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getGamePhaseDisplay(String phase) {
+    switch (phase) {
+      case 'first_half':
+        return '1ST HALF';
+      case 'halftime':
+        return 'HALFTIME';
+      case 'second_half':
+        return '2ND HALF';
+      case 'finished':
+        return 'FINISHED';
+      default:
+        return '1ST HALF';
+    }
   }
 }
 
@@ -170,7 +190,7 @@ class _LiveIndicatorState extends State<_LiveIndicator>
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppConfig.accentColor.withOpacity(0.6),
+              color: AppConfig.accentColor.withValues(alpha: 0.6),
               blurRadius: 4,
               spreadRadius: 1,
             ),

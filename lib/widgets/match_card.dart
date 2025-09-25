@@ -29,15 +29,15 @@ class MatchCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
+              color: Colors.grey.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
             color: isFinished
-                ? Colors.grey.withOpacity(0.2)
-                : AppConfig.primaryColor.withOpacity(0.1),
+                ? Colors.grey.withValues(alpha: 0.2)
+                : AppConfig.primaryColor.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -53,8 +53,8 @@ class MatchCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: isFinished
-                          ? Colors.grey.withOpacity(0.1)
-                          : AppConfig.primaryColor.withOpacity(0.1),
+                          ? Colors.grey.withValues(alpha: 0.1)
+                          : AppConfig.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -198,10 +198,10 @@ class MatchCard extends StatelessWidget {
             width: isWeb ? 60 : 50,
             height: isWeb ? 60 : 50,
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.05),
+              color: Colors.grey.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -245,12 +245,12 @@ class MatchCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: isFinished
                   ? const Color(0xFFF8F9FA)
-                  : AppConfig.primaryColor.withOpacity(0.05),
+                  : AppConfig.primaryColor.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isFinished
-                    ? Colors.grey.withOpacity(0.2)
-                    : AppConfig.primaryColor.withOpacity(0.2),
+                    ? Colors.grey.withValues(alpha: 0.2)
+                    : AppConfig.primaryColor.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -285,13 +285,13 @@ class MatchCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppConfig.accentColor.withOpacity(0.15),
-                    Colors.green.withOpacity(0.1),
+                    AppConfig.accentColor.withValues(alpha: 0.15),
+                    Colors.green.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppConfig.accentColor.withOpacity(0.3),
+                  color: AppConfig.accentColor.withValues(alpha: 0.3),
                   width: 0.5,
                 ),
               ),

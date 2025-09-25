@@ -131,7 +131,7 @@ class _PWAInstallPromptState extends State<PWAInstallPrompt>
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppConfig.primaryColor.withOpacity(0.1),
+              color: AppConfig.primaryColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
@@ -186,12 +186,10 @@ class _PWAInstallPromptState extends State<PWAInstallPrompt>
     return AnimatedBuilder(
       animation: _slideAnimation,
       builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _slideAnimation.value * 200),
-          child: Positioned(
-            bottom: 20,
-            left: 20,
-            right: 20,
+        return Positioned(
+          bottom: 20 + (_slideAnimation.value * 200),
+          left: 20,
+          right: 20,
             child: Material(
               elevation: 8,
               borderRadius: BorderRadius.circular(16),
@@ -201,12 +199,12 @@ class _PWAInstallPromptState extends State<PWAInstallPrompt>
                   gradient: LinearGradient(
                     colors: [
                       Colors.white,
-                      AppConfig.accentColor.withOpacity(0.05),
+                      AppConfig.accentColor.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppConfig.primaryColor.withOpacity(0.2),
+                    color: AppConfig.primaryColor.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -280,7 +278,6 @@ class _PWAInstallPromptState extends State<PWAInstallPrompt>
                 ),
               ),
             ),
-          ),
         );
       },
     );
@@ -288,7 +285,7 @@ class _PWAInstallPromptState extends State<PWAInstallPrompt>
 }
 
 class PWAInstallBanner extends StatelessWidget {
-  const PWAInstallBanner({super.key});
+  PWAInstallBanner({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -299,12 +296,12 @@ class PWAInstallBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppConfig.primaryColor.withOpacity(0.1),
-            AppConfig.accentColor.withOpacity(0.05),
+            AppConfig.primaryColor.withValues(alpha: 0.1),
+            AppConfig.accentColor.withValues(alpha: 0.05),
           ],
         ),
         border: Border.all(
-          color: AppConfig.primaryColor.withOpacity(0.2),
+          color: AppConfig.primaryColor.withValues(alpha: 0.2),
           width: 1,
         ),
         borderRadius: BorderRadius.circular(12),

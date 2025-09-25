@@ -20,7 +20,6 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
   late TabController _tabController;
   // UPDATED: Changed category names
   final List<String> _categories = ['Sub Junior', 'Junior', 'Senior'];
-  static const Color newBlue = Color(0xFF002675);
   final TextEditingController _passwordController = TextEditingController();
 
   @override
@@ -96,6 +95,7 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Clean logo design (no container styling)
             Container(
@@ -190,19 +190,119 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
     final double screenHeight = MediaQuery.of(context).size.height;
     final double headerHeight = screenHeight / 4.5; // Optimized for better space usage
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = AppConfig.isWeb(screenWidth);
-
     return Scaffold(
       backgroundColor: AppConfig.backgroundColor,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(headerHeight),
-          Expanded(
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: _buildHeader(headerHeight),
+          ),
+          SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('matches')
+                  .where('status', isEqualTo: 'Live')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox.shrink();
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                final liveMatches = snapshot.data!.docs
+                    .map((doc) => Match.fromFirestore(doc))
+                    .toList();
+                liveMatches.sort((a, b) {
+                  int dateComparison = a.date.compareTo(b.date);
+                  if (dateComparison == 0) {
+                    return a.time.compareTo(b.time);
+                  }
+                  return dateComparison;
+                });
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
+                      child: Text(
+                        "Live Match",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.black87),
+                      ),
+                    ),
+                    CarouselSlider.builder(
+                      itemCount: liveMatches.length,
+                      itemBuilder: (context, index, realIndex) {
+                        return LiveMatchCard(match: liveMatches[index]);
+                      },
+                      options: CarouselOptions(
+                        height: 180,
+                        autoPlay: true,
+                        enlargeCenterPage: true,
+                        viewportFraction: 0.85,
+                        enlargeFactor: 0.2,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          SliverPersistentHeader(
+            delegate: _SliverAppBarDelegate(
+              TabBar(
+                controller: _tabController,
+                tabs: _categories
+                    .map((String category) => Tab(
+                          text: category,
+                          height: 40,
+                        ))
+                    .toList(),
+                labelColor: Colors.white,
+                unselectedLabelColor: const Color(0xFF6B7280),
+                labelStyle:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                unselectedLabelStyle:
+                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppConfig.primaryColor,
+                      AppConfig.secondaryColor,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppConfig.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                    BoxShadow(
+                      color: AppConfig.accentColor.withValues(alpha: 0.1),
+                      blurRadius: 12,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                overlayColor: MaterialStateProperty.all(Colors.transparent),
+              ),
+            ),
+            pinned: true,
+          ),
+          SliverFillRemaining(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('matches')
+                  .where('status', isNotEqualTo: 'Live')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -217,127 +317,22 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const EmptyDataWidget(
                     title: 'No Matches Yet',
-                    subtitle: 'Check back later for upcoming matches and live scores.',
+                    subtitle:
+                        'Check back later for upcoming matches and live scores.',
                     icon: Icons.sports_soccer,
                   );
                 }
-
-                final allMatches = snapshot.data!.docs
+                final otherMatches = snapshot.data!.docs
                     .map((doc) => Match.fromFirestore(doc))
                     .toList();
-
-                final liveMatches = allMatches.where((m) => m.status == 'Live').toList();
-                // Sort live matches by time (earliest started first)
-                liveMatches.sort((a, b) {
-                  int dateComparison = a.date.compareTo(b.date);
-                  if (dateComparison == 0) {
-                    // If same date, sort by time
-                    return a.time.compareTo(b.time);
-                  }
-                  return dateComparison;
-                });
-
-                final otherMatches = allMatches.where((m) => m.status != 'Live').toList();
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (liveMatches.isNotEmpty) ...[
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
-                        child: Text(
-                          "Live Match",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Colors.black87),
-                        ),
-                      ),
-                      CarouselSlider.builder(
-                        itemCount: liveMatches.length,
-                        itemBuilder: (context, index, realIndex) {
-                          return LiveMatchCard(match: liveMatches[index]);
-                        },
-                        options: CarouselOptions(
-                          height: 180,
-                          autoPlay: true,
-                          enlargeCenterPage: true,
-                          viewportFraction: 0.85,
-                          enlargeFactor: 0.2,
-                        ),
-                      ),
-                    ],
-                    Container(
-                      margin: EdgeInsets.symmetric(
-                        vertical: 16.0,
-                        horizontal: isWeb ? 32.0 : 16.0,
-                      ),
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: TabBar(
-                        controller: _tabController,
-                        tabs: _categories
-                            .map((String category) => Tab(
-                                  text: category,
-                                  height: 40,
-                                ))
-                            .toList(),
-                        labelColor: Colors.white,
-                        unselectedLabelColor: const Color(0xFF6B7280),
-                        labelStyle: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14),
-                        unselectedLabelStyle: const TextStyle(
-                            fontWeight: FontWeight.w500, fontSize: 14),
-                        indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                            colors: [
-                              AppConfig.primaryColor,
-                              AppConfig.secondaryColor,
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppConfig.primaryColor.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                            BoxShadow(
-                              color: AppConfig.accentColor.withOpacity(0.1),
-                              blurRadius: 12,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        dividerColor: Colors.transparent,
-                        overlayColor: MaterialStateProperty.all(Colors.transparent),
-                      ),
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: _categories.map((category) {
-                          return CategorizedMatchView(
-                            matches: otherMatches,
-                            category: category,
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
+                return TabBarView(
+                  controller: _tabController,
+                  children: _categories.map((category) {
+                    return CategorizedMatchView(
+                      matches: otherMatches,
+                      category: category,
+                    );
+                  }).toList(),
                 );
               },
             ),
@@ -396,8 +391,8 @@ class CategorizedMatchView extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildMatchSection(context, 'Finished Matches', finishedMatches),
-          _buildMatchSection(context, 'Upcoming Matches', upcomingMatches),
+          _buildMatchSection(context, 'Upcoming $category Matches', upcomingMatches),
+          _buildMatchSection(context, 'Finished $category Matches', finishedMatches),
         ],
       ),
     );
@@ -461,5 +456,31 @@ class CategorizedMatchView extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => 48.0;
+  @override
+  double get maxExtent => 48.0;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      height: 48.0,
+      color: AppConfig.backgroundColor,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

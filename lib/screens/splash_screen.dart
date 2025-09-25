@@ -156,7 +156,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   blurRadius: 20,
                                   spreadRadius: 5,
                                 ),
@@ -207,7 +207,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   letterSpacing: 3,
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black.withOpacity(0.5),
+                                      color: Colors.black.withValues(alpha: 0.5),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -219,10 +219,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(25),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -230,12 +230,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                                   'YOUR MUSIC-POWERED SPORTS HUB',
                                   style: TextStyle(
                                     fontSize: isWeb ? 16 : 12,
-                                    color: Colors.white.withOpacity(0.95),
+                                    color: Colors.white.withValues(alpha: 0.95),
                                     letterSpacing: 3,
                                     fontWeight: FontWeight.w600,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.black.withOpacity(0.5),
+                                        color: Colors.black.withValues(alpha: 0.5),
                                         blurRadius: 10,
                                       ),
                                     ],
@@ -270,9 +270,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(25),
-                    border: Border.all(color: Colors.white.withOpacity(0.3)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                   ),
                   child: const Text(
                     'Skip →',

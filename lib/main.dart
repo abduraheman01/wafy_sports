@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sports_app/firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:sports_app/screens/simple_manager_page.dart';
 import 'package:sports_app/services/notification_service.dart';
 import 'package:sports_app/screens/home_screen.dart';
 
@@ -50,7 +49,7 @@ class MyApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.white,
           elevation: 0,
-          shadowColor: Colors.grey.withOpacity(0.1),
+          shadowColor: Colors.grey.withValues(alpha: 0.1),
           surfaceTintColor: Colors.transparent,
           iconTheme: const IconThemeData(color: Color(0xFF1A1A1A)),
           titleTextStyle: GoogleFonts.poppins(
@@ -65,14 +64,14 @@ class MyApp extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           color: Colors.white,
-          shadowColor: Colors.grey.withOpacity(0.15),
+          shadowColor: Colors.grey.withValues(alpha: 0.15),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFDF1A19), // Official Red
             foregroundColor: Colors.white,
             elevation: 8,
-            shadowColor: const Color(0xFFDF1A19).withOpacity(0.3),
+            shadowColor: const Color(0xFFDF1A19).withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),

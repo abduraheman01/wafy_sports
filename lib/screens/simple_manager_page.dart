@@ -44,14 +44,42 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
 
 
   void _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null && picked != _selectedTime) {
-      setState(() {
-        _selectedTime = picked;
-      });
+    try {
+      final TimeOfDay? picked = await showTimePicker(
+        context: context,
+        initialTime: _selectedTime ?? TimeOfDay.now(),
+        builder: (BuildContext context, Widget? child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+            child: child!,
+          );
+        },
+      );
+
+      if (picked != null) {
+        setState(() {
+          _selectedTime = picked;
+        });
+
+        // Show confirmation feedback
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Time selected: ${picked.format(context)}'),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting time: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -314,7 +342,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(2, 0),
               ),
@@ -337,7 +365,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -402,7 +430,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -422,7 +450,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppConfig.accentColor.withOpacity(0.1),
+                        color: AppConfig.accentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -550,10 +578,10 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isSelected ? AppConfig.primaryColor.withOpacity(0.1) : Colors.transparent,
+            color: isSelected ? AppConfig.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: isSelected ? Border.all(
-              color: AppConfig.primaryColor.withOpacity(0.3),
+              color: AppConfig.primaryColor.withValues(alpha: 0.3),
               width: 1,
             ) : null,
           ),
@@ -709,7 +737,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: (activity['color'] as Color).withOpacity(0.1),
+                                  color: (activity['color'] as Color).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Icon(
@@ -849,7 +877,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -864,7 +892,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -902,7 +930,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
+            color: Colors.grey.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -939,7 +967,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1158,7 +1186,67 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('matches').orderBy('date').snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        print('Matches StreamBuilder - Connection State: ${snapshot.connectionState}');
+        print('Matches StreamBuilder - Has Data: ${snapshot.hasData}');
+        print('Matches StreamBuilder - Has Error: ${snapshot.hasError}');
+        if (snapshot.hasData) {
+          print('Matches StreamBuilder - Document Count: ${snapshot.data!.docs.length}');
+        }
+        if (snapshot.hasError) {
+          print('Matches StreamBuilder - Error: ${snapshot.error}');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading matches',
+                  style: TextStyle(color: Colors.red[600], fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Error: ${snapshot.error}',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => setState(() {}),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.sports_soccer_outlined, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'No matches found',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Create your first match to get started!',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ],
+            ),
+          );
+        }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1220,7 +1308,57 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('players').snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading players',
+                  style: TextStyle(color: Colors.red[600], fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Error: ${snapshot.error}',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => setState(() {}),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.person_outline, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'No players found',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Add your first player to get started!',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ],
+            ),
+          );
+        }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1548,7 +1686,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -1690,12 +1828,12 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppConfig.primaryColor.withOpacity(0.1),
-                  AppConfig.accentColor.withOpacity(0.05),
+                  AppConfig.primaryColor.withValues(alpha: 0.1),
+                  AppConfig.accentColor.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppConfig.primaryColor.withOpacity(0.2)),
+              border: Border.all(color: AppConfig.primaryColor.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -1851,7 +1989,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         border: Border.all(color: Colors.red[200]!, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withOpacity(0.1),
+            color: Colors.red.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1970,9 +2108,9 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: AppConfig.primaryColor.withOpacity(0.1),
+                              color: AppConfig.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppConfig.primaryColor.withOpacity(0.3)),
+                              border: Border.all(color: AppConfig.primaryColor.withValues(alpha: 0.3)),
                             ),
                             child: Center(
                               child: Text(
@@ -2019,9 +2157,9 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: AppConfig.primaryColor.withOpacity(0.1),
+                              color: AppConfig.primaryColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppConfig.primaryColor.withOpacity(0.3)),
+                              border: Border.all(color: AppConfig.primaryColor.withValues(alpha: 0.3)),
                             ),
                             child: Center(
                               child: Text(
@@ -2144,6 +2282,43 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                           ),
                         ),
                       ],
+                      const SizedBox(height: 6),
+                      // Manual Timer Controls
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _showSetTimerDialog(match),
+                              icon: const Icon(Icons.edit_calendar, size: 14),
+                              label: const Text('Set Timer', style: TextStyle(fontSize: 12)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.indigo,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: match.gamePhase == 'first_half' ? () => _triggerHalftime(match) : null,
+                              icon: const Icon(Icons.pause_presentation, size: 14),
+                              label: const Text('Halftime', style: TextStyle(fontSize: 12)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -2280,7 +2455,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                               width: 60,
                               height: 60,
                               decoration: BoxDecoration(
-                                color: AppConfig.primaryColor.withOpacity(0.1),
+                                color: AppConfig.primaryColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: AppConfig.primaryColor),
                               ),
@@ -2326,7 +2501,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
                               width: 60,
                               height: 60,
                               decoration: BoxDecoration(
-                                color: AppConfig.primaryColor.withOpacity(0.1),
+                                color: AppConfig.primaryColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: AppConfig.primaryColor),
                               ),
@@ -2429,9 +2604,8 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
   }
 
   void _startSecondHalf(Match match) async {
+    // Continue from where first half ended (don't reset timer to 0)
     await FirebaseFirestore.instance.collection('matches').doc(match.id).update({
-      'currentMinute': 0,
-      'currentSecond': 0,
       'gamePhase': 'second_half',
       'isTimerRunning': true,
       'timerStartTime': FieldValue.serverTimestamp(),
@@ -2488,7 +2662,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         }
 
         // Auto finish at 20 minutes total (10 first half + 10 second half)
-        if (match.gamePhase == 'second_half' && newMinute >= 10) {
+        if (match.gamePhase == 'second_half' && newMinute >= 20) {
           await FirebaseFirestore.instance.collection('matches').doc(matchId).update({
             'status': 'Finished',
             'gamePhase': 'finished',
@@ -2507,6 +2681,159 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         timer.cancel();
       }
     });
+  }
+
+  void _showSetTimerDialog(Match match) {
+    int selectedMinute = match.currentMinute;
+    int selectedSecond = match.currentSecond;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Set Match Timer'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Select the current match time:'),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const Text('Minutes', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ListWheelScrollView.useDelegate(
+                            controller: FixedExtentScrollController(initialItem: selectedMinute),
+                            itemExtent: 30,
+                            perspective: 0.005,
+                            physics: const FixedExtentScrollPhysics(),
+                            onSelectedItemChanged: (index) {
+                              setDialogState(() {
+                                selectedMinute = index;
+                              });
+                            },
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              childCount: 60,
+                              builder: (context, index) {
+                                return Container(
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    index.toString().padLeft(2, '0'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: selectedMinute == index ? FontWeight.bold : FontWeight.normal,
+                                      color: selectedMinute == index ? Colors.blue : Colors.black,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const Text('Seconds', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ListWheelScrollView.useDelegate(
+                            controller: FixedExtentScrollController(initialItem: selectedSecond),
+                            itemExtent: 30,
+                            perspective: 0.005,
+                            physics: const FixedExtentScrollPhysics(),
+                            onSelectedItemChanged: (index) {
+                              setDialogState(() {
+                                selectedSecond = index;
+                              });
+                            },
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              childCount: 60,
+                              builder: (context, index) {
+                                return Container(
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    index.toString().padLeft(2, '0'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: selectedSecond == index ? FontWeight.bold : FontWeight.normal,
+                                      color: selectedSecond == index ? Colors.blue : Colors.black,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Timer will be set to: ${selectedMinute.toString().padLeft(2, '0')}:${selectedSecond.toString().padLeft(2, '0')}',
+                  style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await FirebaseFirestore.instance.collection('matches').doc(match.id).update({
+                  'currentMinute': selectedMinute,
+                  'currentSecond': selectedSecond,
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Timer set to ${selectedMinute.toString().padLeft(2, '0')}:${selectedSecond.toString().padLeft(2, '0')}')),
+                );
+              },
+              child: const Text('Set Timer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _triggerHalftime(Match match) async {
+    await FirebaseFirestore.instance.collection('matches').doc(match.id).update({
+      'gamePhase': 'halftime',
+      'isTimerRunning': false,
+      'halftimeStartTime': FieldValue.serverTimestamp(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${match.homeTeamName} vs ${match.awayTeamName} is now at halftime!')),
+    );
   }
 
   String _formatMatchTime(DateTime matchDate) {
@@ -2589,7 +2916,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppConfig.primaryColor.withOpacity(0.1),
+            color: AppConfig.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: AppConfig.primaryColor, size: 18),
@@ -2630,21 +2957,26 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
       stream: FirebaseFirestore.instance
           .collection('matches')
           .where('category', isEqualTo: category)
-          .where('status', isEqualTo: 'Upcoming')
-          .orderBy('date', descending: false)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _buildErrorCard('Failed to load upcoming matches');
+          print('Upcoming matches error: ${snapshot.error}');
+          return _buildErrorCard('Failed to load upcoming matches: ${snapshot.error}');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingCard('Loading upcoming matches...');
         }
 
-        final matches = snapshot.data!.docs.map((doc) {
+        // Filter and sort in code instead of using composite queries
+        final allMatches = snapshot.data!.docs.map((doc) {
           return Match.fromFirestore(doc);
         }).toList();
+
+        final matches = allMatches
+            .where((match) => match.status == 'Upcoming')
+            .toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
 
         if (matches.isEmpty) {
           return _buildEmptyCard(
@@ -2666,21 +2998,26 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
       stream: FirebaseFirestore.instance
           .collection('matches')
           .where('category', isEqualTo: category)
-          .where('status', isEqualTo: 'Finished')
-          .orderBy('date', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _buildErrorCard('Failed to load finished matches');
+          print('Finished matches error: ${snapshot.error}');
+          return _buildErrorCard('Failed to load finished matches: ${snapshot.error}');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingCard('Loading finished matches...');
         }
 
-        final matches = snapshot.data!.docs.map((doc) {
+        // Filter and sort in code instead of using composite queries
+        final allMatches = snapshot.data!.docs.map((doc) {
           return Match.fromFirestore(doc);
         }).toList();
+
+        final matches = allMatches
+            .where((match) => match.status == 'Finished')
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date)); // Most recent first
 
         if (matches.isEmpty) {
           return _buildEmptyCard(
@@ -2705,7 +3042,8 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return _buildErrorCard('Failed to load players');
+          print('Category players error: ${snapshot.error}');
+          return _buildErrorCard('Failed to load players: ${snapshot.error}');
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -2741,7 +3079,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -2868,10 +3206,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
             ],
           ),
         ],
-      ),
-        ],
-      ),
-    );
+      ));
   }
 
   Widget _buildManagePlayerCard(Player player) {
@@ -2887,7 +3222,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppConfig.primaryColor.withOpacity(0.1),
+            backgroundColor: AppConfig.primaryColor.withValues(alpha: 0.1),
             child: Text(
               player.name.isNotEmpty ? player.name[0].toUpperCase() : 'P',
               style: TextStyle(
@@ -3028,7 +3363,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -3040,7 +3375,7 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppConfig.primaryColor.withOpacity(0.1),
+                color: AppConfig.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -3172,6 +3507,25 @@ class _SimpleManagerPageState extends State<SimpleManagerPage> {
         _buildMobileDropdown('Stage', _selectedStage, ['Group Stage', 'Round of 16', 'Quarter Final', 'Semi Final', 'Final'], (value) {
           setState(() => _selectedStage = value!);
         }),
+        const SizedBox(height: 16),
+        InkWell(
+          onTap: _selectTime,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.timer),
+                const SizedBox(width: 12),
+                Text('Start Time: ${_selectedTime?.format(context) ?? 'Not Set'}'),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
