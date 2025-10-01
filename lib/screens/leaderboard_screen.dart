@@ -151,17 +151,17 @@ class CategoryLeaderboard extends StatelessWidget {
           statField: 'goals',
         ),
         const SizedBox(height: 24),
-        _buildLeaderboardSection(
-          context: context,
-          title: 'Most Saves',
-          stream: FirebaseFirestore.instance
-              .collection('players')
-              .where('category', isEqualTo: category)
-              .orderBy('saves', descending: true)
-              .limit(5)
-              .snapshots(),
-          statField: 'saves',
-        ),
+        // _buildLeaderboardSection(
+        //   context: context,
+        //   title: 'Most Saves',
+        //   stream: FirebaseFirestore.instance
+        //       .collection('players')
+        //       .where('category', isEqualTo: category)
+        //       .orderBy('saves', descending: true)
+        //       .limit(5)
+        //       .snapshots(),
+        //   statField: 'saves',
+        // ),
       ],
     );
   }

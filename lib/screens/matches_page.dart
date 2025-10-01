@@ -101,7 +101,7 @@ class _MatchesPageState extends State<MatchesPage> with TickerProviderStateMixin
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: SafeImage(
-                imagePath: 'assets/images/LogoWide.png',
+                imagePath: 'assets/images/Layer 1.png',
                 height: isWeb ? 100 : 80,
                 fit: BoxFit.contain,
                 fallbackWidget: Container(
